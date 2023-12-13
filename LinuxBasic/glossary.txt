@@ -1,0 +1,35 @@
+##navigare
+
+ls - listare continut director
+cd - schimbare director
+pwd- afisare cale director curent
+. - calea de referinta pentru director curent
+.. - calea de referinta pentru parintele directorului curent
+
+##manipulare fisiere
+
+cp - copiere /directoare
+mv - mutare/redenumire fisier/directoare
+rm - stergere fisiere/directoare
+mkdir - create director
+rmdir - stergere director
+touch - crearea fisier
+
+##permisiuni
+chmod- schimbare permisiunni
+r (read) w (write) x (execute)
+
+##manual
+man - afisare manual
+
+
+##comenzi filtrare
+head - afisare primele n linii
+tail - afisare ultimele n linii
+sort - ordonare linii intr-un anumit mod
+wc - numara cuvinte, caractere si linii
+grep - cauta dupa un anumit tipar
+
+##alte comenzi
+df - afiseaza spatiul liber si ocupat din disk
+kill - anulare proces

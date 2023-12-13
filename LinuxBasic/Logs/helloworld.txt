@@ -1,0 +1,24 @@
+Script started on 2023-12-11 13:39:25+02:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="80" LINES="24"]
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ touch helloworld2.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ echo "Hello World!" > helloworld2.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ cat "[Khelloworld2.txt
+[?2004lHello World!
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ grep "Hello" helloworld2.txt
+[?2004l[01;31m[KHello[m[K World!
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ awk '[[K{prit[Knt1[K$![K1][K}' helloworld2.txt
+[?2004lHello
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ sed s[K's/Hell[K[K[K[KWorld/There/' helloworld2.txt
+[?2004lHello There!
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ touch helloworld3.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ echo "General Kenobi!" > helloworld3.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ cat helloworld3.txt
+[?2004lGeneral Kenobi!
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ awk '<[K{print$@[K2][K}' helloworld3.txt
+[?2004lKenobi!
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ cat helloworld2.txt helloworld3.txt
+[?2004lHello World!
+General Kenobi!
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ exit
+[?2004lexit
+
+Script done on 2023-12-11 13:45:47+02:00 [COMMAND_EXIT_CODE="0"]

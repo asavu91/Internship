@@ -1,0 +1,34 @@
+Script started on 2023-12-13 10:21:58+02:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="80" LINES="24"]
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ ls -l exercise.txt
+[?2004l----rw-r-- 1 asavu asavu 88658 dec 11 10:49 exercise.txt
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ chmod g+x exercise.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ chmod g+r exercise.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ chmod g+[K[Ku+rwx exerise.txt
+[?2004lchmod: cannot access 'exerise.txt': No such file or directory
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ chmd[Kod u+rwx exercise.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ chmod go-x exercise.txt
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ ls[K[Kchmod Downloads/Downloads[1PDownloads[C[C[C[C[C[C[C[C[C[K[K[K[K[K[K[K[K[K[K[K[K[K[K[Kls -l /Downloads
+[?2004lls: cannot access '/Downloads': No such file or directory
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ ls -l Downloads
+[?2004ltotal 33916
+-rw-rw-r-- 1 asavu asavu        0 dec  7 13:48 fisier
+-rw-rw-r-- 1 asavu asavu  2632263 dec  5 10:57 get-pip.py
+drwxrwxr-x 3 asavu asavu     4096 dec  7 09:50 [0m[01;34mgit[0m
+drwx------ 2 asavu asavu     4096 dec 11 10:45 [01;34mlinux-exercises[0m
+-rw-rw-r-- 1 asavu asavu   441060 dec 11 10:05 [01;31mlinux-exercise.tar.gz[0m
+drwxr-xr-x 8 asavu asavu     4096 ian 18  2023 [01;34mnano-7.2[0m
+-rw-rw-r-- 1 asavu asavu  3313816 dec 11 14:09 [01;31mnano-7.2.tar.gz[0m
+-rw-rw-r-- 1 asavu asavu 28315928 dec  5 10:56 python-3.10.0-amd64.exe
+drwxrwxr-x 2 asavu asavu     4096 dec  7 09:49 [01;34mrepo[0m
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ ls u-rw Downloads
+[?2004lls: cannot access 'u-rw': No such file or directory
+Downloads:
+fisier      [0m[01;34mlinux-exercises[0m        [01;31mnano-7.2.tar.gz[0m
+get-pip.py  [01;31mlinux-exercise.tar.gz[0m  python-3.10.0-amd64.exe
+[01;34mgit[0m         [01;34mnano-7.2[0m               [01;34mrepo[0m
+[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ chmod u-rw Downloads
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ chmod u+rw Downloads
+[?2004l[?2004h]0;asavu@UbuntuVM: ~[01;32masavu@UbuntuVM[00m:[01;34m~[00m$ exit
+[?2004lexit
+
+Script done on 2023-12-13 10:28:27+02:00 [COMMAND_EXIT_CODE="0"]
