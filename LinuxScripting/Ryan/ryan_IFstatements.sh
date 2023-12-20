@@ -47,11 +47,11 @@ sleep 2
 
 echo "The asylum demon jumps from above. RUN!. Pick a number between 0-5."
 
-demon=$(( RANDOM % 10 ))
+demon=$(( RANDOM % 6 ))
 
 read undead
 
-if [[ $demon == $( expr $undead + $strength ) ]];	
+if [[ $(( undead + strength )) -gt $demon ]];	
 	then
 	echo "You escaped!"
 else
@@ -61,6 +61,21 @@ fi
 
 sleep 2
 
-echo "You managed to recover your lost gear and return to defeat the beast"
+echo "You managed to recover your lost gear and return to defeat the beast. Type what weapons will you use: Sword, Dagger, Staff or Crossbow"
 
+read weapon
 
+if [[  &intelligence -gt  10 || $weapon == "Crossbow" ]];
+	then
+	echo "With your mighty intellect, you defeated the beast and managed to escape the asylum. From there, Lordran is just a fly away..."
+
+elif [[  $type == "Knight" && $weapon == "Sword" ]];
+	then
+	echo "You plunged from above and managed to land a critical hint. The beast is defeated. Now the real adventure begins... "
+else
+	echo "YOU DIED"
+fi
+
+sleep 1
+
+echo "To never be continued..."
