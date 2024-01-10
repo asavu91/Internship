@@ -43,4 +43,3 @@ while (True):
         case "8":
 
             os.system('man')
-
