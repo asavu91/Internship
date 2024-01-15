@@ -1,14 +1,33 @@
 def validate_cnp(func):
     def wrapper(cnp):
-        if len(cnp) != 13:
-            return ("Invalid CNP format. It should contain 13 digits.")
+        try:
+
+            if len(cnp) != 13:
+                raise ValueError("Invalid CNP format. It should contain 13 digits.")
+        except ValueError as error:
+                print(error)
 
         return func(cnp)
 
     return wrapper
 
+def validate_cnp_constant(func):
+    def wrapper(cnp):
+        numeric_code = [int(x) for x in cnp]
+        constant = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9]
+        total = sum(numeric_code * constant for numeric_code, constant in zip(numeric_code[:12], constant)) % 11
+        expected_sum = 1 if total == 10 else total
+        try:
+            if numeric_code [12] != expected_sum:
+                raise ValueError("CNP sum invalid")
+        except ValueError as error:
+                print(error)
+
+        return func(cnp)
+    return wrapper
 
 @validate_cnp
+@validate_cnp_constant
 def interpret_cnp(cnp):
     gender_digit = int(cnp[0])
     year = int(cnp[1:3])
@@ -18,7 +37,7 @@ def interpret_cnp(cnp):
 
     gender = "Male" if gender_digit in [1, 3, 5, 7] else "Female"
 
-    country = {23: "SB", 12: "B", 56: "SV"}
+    country = {34: "SB", 12: "B", 56: "SV"}
 
     def get_country(country_code, country):
         country_keys = country.keys()
@@ -44,7 +63,10 @@ def interpret_cnp(cnp):
 
     return interpretation
 
+try:
+    ro_cnp = "1980318347834"
+    result = interpret_cnp(ro_cnp)
+    print(result)
+except Exception:
+    print("Error CNP")
 
-ro_cnp = "1890101234567"
-result = interpret_cnp(ro_cnp)
-print(result)
