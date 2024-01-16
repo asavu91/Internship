@@ -8,7 +8,6 @@ while (True):
     print("5 - Remove a dir/file")
     print("6 - List processes")
     print("7 - Rename file")
-    print("8 - View command page ")
 
     option = input("Enter the chosen number for the respective action:")
 
@@ -39,5 +38,3 @@ while (True):
             new_file_name = input("Enter new name")
             os.system('mv' + og_file_name + new_file_name)
 
-        case "8":
-            os.system('man')
