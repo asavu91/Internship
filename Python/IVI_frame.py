@@ -1,39 +1,45 @@
-payloads_IVI_A102 = ["60 20 45 6C FE 3D 4B AA", "40 12 6C AF 05 78 4A 04"]
-binary_frame = ''.join(''.join(bin(int(byte, 16))[2:].zfill(8) for byte in frame.split()[::-1]) for frame in payloads_IVI_A102)
+payload_input = "60 20 45 6C FE 3D 4B AA"
+payload_input2 = "40 12 6C AF 05 78 4A 04"
 
-def extract_signal_value(binary_frame, frame_index, signal_info):
-    byte_position = signal_info["byte_position"]
-    bit_position = signal_info["bit_position"]
-    size = signal_info["size"]
+signal_info = [
+    ["PassengerSeat", 0, 7, 3],
+    ["TimeFormat", 5, 3, 1],
+    ["ClimFP", 5, 7, 4]
+]
 
-    start_index = (frame_index * 64) + (byte_position * 8) + bit_position
-    end_index = start_index + size
-    signal_binary = binary_frame[start_index:end_index][::-1]
-    signal_value = int(signal_binary, 2)
-    return signal_value
+def hex_to_binary(hex_payload):
+    binary_payload = bin(int(hex_payload.replace(" ", ""), 16))[2:]
 
-passenger_seat_memo_request = {
-    "byte_position": 0,
-    "bit_position": 7,
-    "size": 3
-}
+    return binary_payload.zfill(8 * ((len(binary_payload) + 7) // 8))
 
-time_signal = {
-    "byte_position": 5,
-    "bit_position": 3,
-    "size": 1
-}
+def signal_to_value(signal_info, binary_string):
 
-clim_fp_bright = {
-    "byte_position": 5,
-    "bit_position": 7,
-    "size": 4
-}
+    #Impartem in grupuri de 8 biți payload-ul convertit
+    binary_groups = [binary_string[i:i+8] for i in range(0, len(binary_string), 8)]
 
-# Extracting values for the first frame
-print("PassengerSeatMemoRequest (Frame 1):", extract_signal_value(binary_frame, 0, passenger_seat_memo_request))
-print("PassengerSeatMemoRequest (Frame 2):", extract_signal_value(binary_frame, 1, passenger_seat_memo_request))
-print("Time (Frame 1):", extract_signal_value(binary_frame, 0, time_signal))
-print("Time (Frame 2):", extract_signal_value(binary_frame, 1, time_signal))
-print("ClimFPBright (Frame 1):", extract_signal_value(binary_frame, 0, clim_fp_bright))
-print("ClimFPBright (Frame 2):", extract_signal_value(binary_frame, 1, clim_fp_bright))
+    #Extragem informațiile despre semnal din lista signal_info
+    signal_name, group_number, reverse_start_position, size = signal_info
+
+    #Calculează poziția de început pentru extragerea valorii semnalului
+    start_position = 7 - reverse_start_position
+
+    #Extrage grupul relevant de 8 biți
+    group = binary_groups[group_number]
+
+    #Extrage segmentul corespunzător valorii semnalului din grupul de 8 biți
+    signal_value_bin = group[start_position: start_position + size]
+
+    signal_value_decimal = int(signal_value_bin, 2)
+    print(signal_name, signal_value_decimal)
+
+
+
+def show_value(input, info):
+    binary_frame = hex_to_binary(input)
+    for signal_info in info:
+        signal_to_value(signal_info, binary_frame)
+
+print("----1st Frame----")
+show_value(payload_input, signal_info)
+print("----2nd Frame----")
+show_value(payload_input2, signal_info)
