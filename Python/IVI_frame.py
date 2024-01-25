@@ -1,3 +1,5 @@
+from frame_utils import hex_to_binary
+
 payload_input = "60 20 45 6C FE 3D 4B AA"
 payload_input2 = "40 12 6C AF 05 78 4A 04"
 
@@ -7,12 +9,7 @@ signal_info = [
     ["ClimFP", 5, 7, 4]
 ]
 
-def hex_to_binary(hex_payload):
-    binary_payload = bin(int(hex_payload.replace(" ", ""), 16))[2:]
-
-    return binary_payload.zfill(8 * ((len(binary_payload) + 7) // 8))
-
-def signal_to_value(signal_info, binary_string):
+def extract_signal_value(signal_info, binary_string):
 
     #Impartem in grupuri de 8 biți payload-ul convertit
     binary_groups = [binary_string[i:i+8] for i in range(0, len(binary_string), 8)]
@@ -33,13 +30,12 @@ def signal_to_value(signal_info, binary_string):
     print(signal_name, signal_value_decimal)
 
 
-
-def show_value(input, info):
+def show_frame_value(input, info):
     binary_frame = hex_to_binary(input)
     for signal_info in info:
-        signal_to_value(signal_info, binary_frame)
+        extract_signal_value(signal_info, binary_frame)
 
 print("----1st Frame----")
-show_value(payload_input, signal_info)
+show_frame_value(payload_input, signal_info)
 print("----2nd Frame----")
-show_value(payload_input2, signal_info)
+show_frame_value(payload_input2, signal_info)
