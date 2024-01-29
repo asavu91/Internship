@@ -1,47 +1,23 @@
 from frame_utils import hex_to_binary, binary_to_hex
+from frame_utils import frame_to_bytes, split_frame_into_pdus
 
-frames = {
-    "payload_1": {
-        "Header": "06 02",
-        "DLC": "08",
-        "PDU": "80 00 00 00 00 00 00 00"
-    },
-    "payload_2": {
-        "Header": "05 D0",
-        "DLC": "08",
-        "PDU": "FF 60 00 00 02 00 00 00"
-    },
-    "payload_3": {
-        "Header": "06 01",
-        "DLC": "08",
-        "PDU": "80 00 00 00 00 00 00 00"
-    },
-    "payload_4": {
-        "Header": "06 02",
-        "DLC": "08",
-        "PDU": "40 00 00 10 00 00 00 00"
-    },
-    "payload_5": {
-        "Header": "D0",
-        "DLC": "08",
-        "PDU": "21 20 00 00 02 00 00 00"
-    },
-    "payload_6": {
-        "Header": "06 01",
-        "DLC": "08",
-        "PDU": "80 00 00 00 00 00 00 00"
-    }
-}
+
+frame_1 = "00 06 02 08 80 00 00 00 00 00 00 00 00 05 D0 08 FF 60 00 00 02 00 00 00 00 06 01 08 80 00 00 00 00 00 00 00 00 00 10 C7 77 8A 70 AB AF 88 2A 8C"
+frame_2 = "00 06 02 08 40 00 00 10 00 00 00 00 00 05 D0 08 21 20 00 00 02 00 00 00 00 06 01 08 80 00 00 00 00 00 00 00 00 00 00 11 29 FB 84 33 1D E5 5E 9D"
+
+# Split frames into PDUs
+pdus_1 = split_frame_into_pdus(frame_1)
+pdus_2 = split_frame_into_pdus(frame_2)
 
 
 signal_info = [
     ["LDW_AlertStatus", 2, 5, 2],
-    ["LCA_OverrideDisplay", 5, 2, 1],
-    ["DW_FollowUpTimeDisplay", 4, 7, 6]
+    ["DW_FollowUpTimeDisplay", 4, 7, 6],
+    ["LCA_OverrideDisplay", 5, 2, 1]
 ]
 
-def modify_signal(frame, signal_info, new_value):
-    binary_frame = hex_to_binary(frame["PDU"])
+def modify_signal(pdu, signal_info, new_value):
+    binary_frame = hex_to_binary(pdu)
 
     signal_name, group_number, reverse_start_position, size = signal_info
     start_position = 7 - reverse_start_position
@@ -66,27 +42,27 @@ def show_modified_pdu(original_pdu, modified_pdu, signal_name, new_value):
     print(f"{signal_name} modified to: {new_value}")
     print("\n")
 
+# New values for signals
 ldw_alert_status_new_value = 2
 dw_follow_up_time_display_new_value = 45
 lca_override_display_new_value = 1
 
-# Frame 1 & 4 for LDW_AlertStatus
-modified_pdu1 = modify_signal(frames["payload_1"], signal_info[0], ldw_alert_status_new_value)
-show_modified_pdu(frames["payload_1"]["PDU"], modified_pdu1, signal_info[0][0], ldw_alert_status_new_value)
+# Modify signals in frame 1
+modified_pdu1 = modify_signal(pdus_1[0], signal_info[0], ldw_alert_status_new_value)
+show_modified_pdu(pdus_1[0], modified_pdu1, signal_info[0][0], ldw_alert_status_new_value)
 
-modified_pdu4 = modify_signal(frames["payload_4"], signal_info[0], ldw_alert_status_new_value)
-show_modified_pdu(frames["payload_4"]["PDU"], modified_pdu4, signal_info[0][0], ldw_alert_status_new_value)
+modified_pdu2 = modify_signal(pdus_1[1], signal_info[1], dw_follow_up_time_display_new_value)
+show_modified_pdu(pdus_1[1], modified_pdu2, signal_info[1][0], dw_follow_up_time_display_new_value)
 
-# Frame 2 & 5 for DW_FollowUpTimeDisplay
-modified_pdu2 = modify_signal(frames["payload_2"], signal_info[2], dw_follow_up_time_display_new_value)
-show_modified_pdu(frames["payload_2"]["PDU"], modified_pdu2, signal_info[2][0], dw_follow_up_time_display_new_value)
+modified_pdu3 = modify_signal(pdus_1[2], signal_info[2], lca_override_display_new_value)
+show_modified_pdu(pdus_1[2], modified_pdu3, signal_info[2][0], lca_override_display_new_value)
 
-modified_pdu5 = modify_signal(frames["payload_5"], signal_info[2], dw_follow_up_time_display_new_value)
-show_modified_pdu(frames["payload_5"]["PDU"], modified_pdu5, signal_info[2][0], dw_follow_up_time_display_new_value)
+# Modify signals in frame 2
+modified_pdu4 = modify_signal(pdus_2[0], signal_info[0], ldw_alert_status_new_value)
+show_modified_pdu(pdus_2[0], modified_pdu4, signal_info[0][0], ldw_alert_status_new_value)
 
-# Frame 3 & 6 for LCA_OverrideDisplay
-modified_pdu3 = modify_signal(frames["payload_3"], signal_info[1], lca_override_display_new_value)
-show_modified_pdu(frames["payload_3"]["PDU"], modified_pdu3, signal_info[1][0], lca_override_display_new_value)
+modified_pdu5 = modify_signal(pdus_2[1], signal_info[1], dw_follow_up_time_display_new_value)
+show_modified_pdu(pdus_2[1], modified_pdu5, signal_info[1][0], dw_follow_up_time_display_new_value)
 
-modified_pdu6 = modify_signal(frames["payload_6"], signal_info[1], lca_override_display_new_value)
-show_modified_pdu(frames["payload_6"]["PDU"], modified_pdu6, signal_info[1][0], lca_override_display_new_value)
+modified_pdu6 = modify_signal(pdus_2[2], signal_info[2], lca_override_display_new_value)
+show_modified_pdu(pdus_2[2], modified_pdu6, signal_info[2][0], lca_override_display_new_value)
