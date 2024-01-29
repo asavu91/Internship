@@ -6,6 +6,7 @@ frame_1 = "00 06 02 08 80 00 00 00 00 00 00 00 00 05 D0 08 FF 60 00 00 02 00 00 
 frame_2 = "00 06 02 08 40 00 00 10 00 00 00 00 00 05 D0 08 21 20 00 00 02 00 00 00 00 06 01 08 80 00 00 00 00 00 00 00 00 00 00 11 29 FB 84 33 1D E5 5E 9D"
 
 # Split frames into PDUs
+
 pdus_1 = split_frame_into_pdus(frame_1)
 pdus_2 = split_frame_into_pdus(frame_2)
 
