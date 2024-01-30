@@ -17,3 +17,8 @@ def split_frame_into_pdus(frame, ignore_bytes=4):
     pdus = [' '.join(bytes_list[i:i+12]) for i in range(0, len(bytes_list), 12)]
     return [pdu.split(' ', ignore_bytes)[-1] for pdu in pdus]
 
+def split_into_pdus(frame):
+    bytes_list = frame_to_bytes(frame)
+    pdus = [' '.join(bytes_list[i:i + 12]) for i in range(0, len(bytes_list), 12)]
+    return pdus
+

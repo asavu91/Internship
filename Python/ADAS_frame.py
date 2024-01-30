@@ -1,12 +1,15 @@
 from frame_utils import hex_to_binary, binary_to_hex
-from frame_utils import frame_to_bytes, split_frame_into_pdus
+from frame_utils import frame_to_bytes, split_frame_into_pdus, split_into_pdus
 
 
 frame_1 = "00 06 02 08 80 00 00 00 00 00 00 00 00 05 D0 08 FF 60 00 00 02 00 00 00 00 06 01 08 80 00 00 00 00 00 00 00 00 00 10 C7 77 8A 70 AB AF 88 2A 8C"
 frame_2 = "00 06 02 08 40 00 00 10 00 00 00 00 00 05 D0 08 21 20 00 00 02 00 00 00 00 06 01 08 80 00 00 00 00 00 00 00 00 00 00 11 29 FB 84 33 1D E5 5E 9D"
 
-# Split frames into PDUs
+# just split
+frame_1_to_pdu = split_into_pdus(frame_1)
+frame_2_to_pdu = split_into_pdus(frame_2)
 
+# split with ignoring the first 4 bytes of each pdu
 pdus_1 = split_frame_into_pdus(frame_1)
 pdus_2 = split_frame_into_pdus(frame_2)
 
@@ -37,12 +40,6 @@ def modify_signal(pdu, signal_info, new_value):
 
     return modified_pdu
 
-def show_modified_pdu(original_pdu, modified_pdu, signal_name, new_value):
-    print(f"Original PDU: {original_pdu}")
-    print(f"Modified PDU: {modified_pdu}")
-    print(f"{signal_name} modified to: {new_value}")
-    print("\n")
-
 # New values for signals
 ldw_alert_status_new_value = 2
 dw_follow_up_time_display_new_value = 45
@@ -50,20 +47,73 @@ lca_override_display_new_value = 1
 
 # Modify signals in frame 1
 modified_pdu1 = modify_signal(pdus_1[0], signal_info[0], ldw_alert_status_new_value)
-show_modified_pdu(pdus_1[0], modified_pdu1, signal_info[0][0], ldw_alert_status_new_value)
 
 modified_pdu2 = modify_signal(pdus_1[1], signal_info[1], dw_follow_up_time_display_new_value)
-show_modified_pdu(pdus_1[1], modified_pdu2, signal_info[1][0], dw_follow_up_time_display_new_value)
 
 modified_pdu3 = modify_signal(pdus_1[2], signal_info[2], lca_override_display_new_value)
-show_modified_pdu(pdus_1[2], modified_pdu3, signal_info[2][0], lca_override_display_new_value)
 
 # Modify signals in frame 2
 modified_pdu4 = modify_signal(pdus_2[0], signal_info[0], ldw_alert_status_new_value)
-show_modified_pdu(pdus_2[0], modified_pdu4, signal_info[0][0], ldw_alert_status_new_value)
 
 modified_pdu5 = modify_signal(pdus_2[1], signal_info[1], dw_follow_up_time_display_new_value)
-show_modified_pdu(pdus_2[1], modified_pdu5, signal_info[1][0], dw_follow_up_time_display_new_value)
 
 modified_pdu6 = modify_signal(pdus_2[2], signal_info[2], lca_override_display_new_value)
-show_modified_pdu(pdus_2[2], modified_pdu6, signal_info[2][0], lca_override_display_new_value)
+
+first_byte = frame_1_to_pdu[0].split()[0]
+last_bytes_frame_1 = frame_1_to_pdu[-1]
+last_bytes_frame_2 = frame_2_to_pdu[-1]
+
+# header frame 1
+header_frame_1_pdu_1 = frame_1_to_pdu[0].split()[1:3]
+header_frame_1_pdu_2 = frame_1_to_pdu[1].split()[1:3]
+header_frame_1_pdu_3 = frame_1_to_pdu[2].split()[1:3]
+
+# dlc frame 1
+dlc_frame_1_pdu_1 = frame_1_to_pdu[0].split()[3:4]
+dlc_frame_1_pdu_2 = frame_1_to_pdu[1].split()[3:4]
+dlc_frame_1_pdu_3 = frame_1_to_pdu[2].split()[3:4]
+
+# header frame 2
+header_frame_2_pdu_1 = frame_2_to_pdu[0].split()[1:3]
+header_frame_2_pdu_2 = frame_2_to_pdu[1].split()[1:3]
+header_frame_2_pdu_3 = frame_2_to_pdu[2].split()[1:3]
+
+# dlc frame 2
+dlc_frame_2_pdu_1 = frame_2_to_pdu[0].split()[3:4]
+dlc_frame_2_pdu_2 = frame_2_to_pdu[1].split()[3:4]
+dlc_frame_2_pdu_3 = frame_2_to_pdu[2].split()[3:4]
+
+modified_frame_1_parts = [
+    first_byte,
+    *header_frame_1_pdu_1, *dlc_frame_1_pdu_1, modified_pdu1,
+    first_byte,
+    *header_frame_1_pdu_2, *dlc_frame_1_pdu_2, modified_pdu2,
+    first_byte,
+    *header_frame_1_pdu_3, *dlc_frame_1_pdu_3, modified_pdu3,
+    last_bytes_frame_1
+]
+
+modified_frame_2_parts = [
+    first_byte,
+    *header_frame_2_pdu_1, *dlc_frame_2_pdu_1, modified_pdu4,
+    first_byte,
+    *header_frame_2_pdu_2, *dlc_frame_2_pdu_2, modified_pdu5,
+    first_byte,
+    *header_frame_2_pdu_3, *dlc_frame_2_pdu_3, modified_pdu6,
+    last_bytes_frame_2
+]
+
+modified_frame_1 = ' '.join(modified_frame_1_parts)
+modified_frame_2 = ' '.join(modified_frame_2_parts)
+
+print("Original frame 1:")
+print(frame_1)
+print("Modified Frame 1:")
+print(modified_frame_1)
+print("\n")
+
+print("Original frame 2:")
+print(frame_2)
+print("Modified Frame 2:")
+print(modified_frame_2)
+
