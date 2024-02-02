@@ -8,7 +8,6 @@ def replace_timestamp(log_line):
 
     if len(words) >= 2 and (is_numeric(words[-1]) or is_numeric(words[-2])):
 
-        timestamp_index = 0  # Assuming the timestamp is at index 0
         words[0], words[-1] = words[-1], words[0]
         return True, ' '.join(words)
     else:
