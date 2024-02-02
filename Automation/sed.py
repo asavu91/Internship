@@ -1,14 +1,14 @@
 import re
 
 def is_numeric(word):
-
     return bool(re.match(r'^\d+$', word))
 
 def replace_timestamp(log_line):
-
     words = log_line.split()
+
     if len(words) >= 2 and (is_numeric(words[-1]) or is_numeric(words[-2])):
 
+        timestamp_index = 0  # Assuming the timestamp is at index 0
         words[0], words[-1] = words[-1], words[0]
         return True, ' '.join(words)
     else:
@@ -29,6 +29,5 @@ def process_log_file(file_path):
     with open(file_path, 'w') as file:
         file.writelines(lines)
 
-if __name__ == "__main__":
-    log_file_path = r"C:\Users\asavu\PycharmProjects\Internship\Automation\log.txt"
-    process_log_file(log_file_path)
+log_file_path = r"C:\Users\asavu\PycharmProjects\Internship\Automation\log.txt"
+process_log_file(log_file_path)
