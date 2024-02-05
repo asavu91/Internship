@@ -28,5 +28,5 @@ def process_log_file(file_path):
     with open(file_path, 'w') as file:
         file.writelines(lines)
 
-log_file_path = r"C:\Users\asavu\PycharmProjects\Internship\Automation\log.txt"
+log_file_path = "log.txt"
 process_log_file(log_file_path)
