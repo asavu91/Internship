@@ -5,16 +5,19 @@ def is_numeric(word):
 
 def replace_timestamp(log_line):
     words = log_line.split()
+    timestamp = words[1]
 
-    if len(words) >= 2 and (is_numeric(words[-1]) or is_numeric(words[-2])):
+    if len(words) >= 3 and (is_numeric(words[-1]) or is_numeric(words[-2])):
+        if is_numeric(words[-1]):
+            replacement = words[-1]
+        else:
+            replacement = words[-2]
 
-        words[0], words[-1] = words[-1], words[0]
-        return True, ' '.join(words)
+        return True, log_line.replace(timestamp, replacement)
     else:
         return False, log_line
 
 def process_log_file(file_path):
-
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
