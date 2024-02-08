@@ -16,10 +16,11 @@ for episode_id in episode_ids:
         character_data = response.json()
         species = character_data.get("species")
         character_type = character_data.get("type")
+        character_name = character_data.get("name")
 
-        if species and character_type:
-            species_list.append({"species": species, "type": character_type})
+        if species and character_type and character_name:
+            species_list.append({"species": species, "type": character_type, "name": character_name})
 
 print("Species types that appear in Season 3:")
 for species_data in species_list:
-    print(f'Species: {species_data["species"]}, Type: {species_data["type"]}')
+    print(f'Species: {species_data["species"]}, Type: {species_data["type"]}, Name: {species_data["name"]}')
