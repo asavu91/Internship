@@ -5,6 +5,7 @@ Library    String
 Library    BuiltIn
 Library    DateTime
 
+
 *** Variables ***
 ${LOGCAT_FILE}    logcat.txt
 
