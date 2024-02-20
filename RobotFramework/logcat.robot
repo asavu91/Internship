@@ -5,7 +5,6 @@ Library    String
 Library    BuiltIn
 Library    DateTime
 
-
 *** Variables ***
 ${LOGCAT_FILE}    logcat.txt
 
@@ -20,25 +19,22 @@ Parse Logcat File
     [Arguments]    ${file_path}
     ${parsed_data}=    Create List
     ${file_contents}=    Get File    ${file_path}
-    ${lines}=    Split To Lines    ${file_contents}
+    ${relevant_lines}=    Get Lines Matching Regexp    ${file_contents}    .*ActivityTaskManager: START u0.*|.*Layer: Destroyed ActivityRecord.*
+    ${lines}=    Split To Lines    ${relevant_lines}
+
     ${current_package}=    Set Variable    ${EMPTY}
     ${current_start_time}=    Set Variable    ${EMPTY}
+    ${current_end_time}=    Set Variable    ${EMPTY}
+
     FOR    ${line}    IN    @{lines}
-        ${is_start_marker}=    Run Keyword And Return Status    Should Contain    ${line}    ActivityTaskManager: START u0
-        ${is_end_marker}=    Run Keyword And Return Status    Should Contain    ${line}    Layer: Destroyed ActivityRecord
-        Run Keyword If    ${is_start_marker}    Parse Start Marker    ${line}    ${current_package}    ${current_start_time}
-        IF    ${is_end_marker}
-            ${match}=    Parse End Marker    ${line}    ${current_package}    ${current_start_time}
-            IF    ${match}    # If a matching end marker was found
-                ${current_end_time}=    Fetch Time    ${line}
-                ${app_data}=    Create Dictionary    package=${current_package}    start_time=${current_start_time}    end_time=${current_end_time}
-                Append To List    ${parsed_data}    ${app_data}
-                ${current_package}=    Set Variable    ${EMPTY}    # Reset for the next app
-                ${current_start_time}=    Set Variable    ${EMPTY}
-            END
-        END
+        ${start_marker}=    Run Keyword And Return Status    Should Contain    ${line}    ActivityTaskManager: START u0
+        ${end_marker}=    Run Keyword And Return Status    Should Contain    ${line}    Layer: Destroyed ActivityRecord
+
+        Run Keyword If    ${start_marker}    Parse Start Marker    ${line}    ${current_package}    ${current_start_time}
+        Run Keyword If    ${end_marker}    Parse End Marker    ${line}    ${current_package}    ${current_start_time}    ${current_end_time}    ${parsed_data}
     END
-    RETURN    ${parsed_data}
+
+    [Return]    ${parsed_data}
 
 Parse Start Marker
     [Arguments]    ${line}    ${current_package}    ${current_start_time}
@@ -48,14 +44,13 @@ Parse Start Marker
     Set Test Variable    ${current_start_time}    ${start_time}
 
 Parse End Marker
-    [Arguments]    ${line}    ${current_package}    ${current_start_time}
+    [Arguments]    ${line}    ${current_package}    ${current_start_time}    ${current_end_time}    ${parsed_data}
+    ${end_time}=    Fetch Time    ${line}
     ${package_name}=    Fetch Package Name    ${line}
-    IF    '${package_name}' == '${current_package}'
-        RETURN    ${TRUE}
-    ELSE
-        RETURN    ${FALSE}
-    END
-
+    Set Test Variable    ${current_package}    ${package_name}
+    Set Test Variable    ${current_end_time}    ${end_time}
+    ${app_data}=    Create Dictionary    package=${current_package}    start_time=${current_start_time}    end_time=${current_end_time}
+    Append To List    ${parsed_data}    ${app_data}
 
 Fetch Package Name
     [Arguments]    ${line}
@@ -72,19 +67,15 @@ Fetch Time
 
 Calculate Lifespan
     [Arguments]    ${data}
-    @{lifespans}=    Create List
+    ${lifespans}=    Create List
     FOR    ${app}    IN    @{data}
         Continue For Loop If    '${app['package']}' == '' or '${app['start_time']}' == '' or '${app['end_time']}' == ''
         ${start_sec}=    Convert Time To Seconds    ${app['start_time']}
         ${end_sec}=    Convert Time To Seconds    ${app['end_time']}
-        Log    Start time: ${app['start_time']}, End time: ${app['end_time']}
-        Log    Start sec: ${start_sec}, End sec: ${end_sec}
         ${lifespan}=    Evaluate    ${end_sec} - ${start_sec}
-        Log    Lifespan: ${lifespan}
         ${app_lifespan}=    Create Dictionary    package=${app['package']}    lifespan=${lifespan}
         Append To List    ${lifespans}    ${app_lifespan}
     END
-    Log    Lifespans: ${lifespans}
     RETURN    ${lifespans}
 
 Convert Time To Seconds
@@ -92,10 +83,9 @@ Convert Time To Seconds
     ${minutes}=    Get Substring    ${time_str}    3    5
     ${seconds}=    Get Substring    ${time_str}    6    8
     ${milliseconds}=    Get Substring    ${time_str}    9    12
-    ${milliseconds}=    Convert Time        ${milliseconds}
+    ${milliseconds}=    Convert Time    ${milliseconds}
     ${total_seconds}=    Evaluate    int(${minutes}) * 60 + int(${seconds}) + int(${milliseconds}) / 1000.0
     RETURN    ${total_seconds}
-
 
 Generate Test Verdict
     [Arguments]    ${data}
