@@ -22,13 +22,12 @@ Parse Logcat File
     ${lines}=    Split To Lines    ${file_contents}
     ${current_package}=    Set Variable    ${EMPTY}
     ${current_start_time}=    Set Variable    ${EMPTY}
+    ${current_end_time}=    Set Variable    ${EMPTY}
     FOR    ${line}    IN    @{lines}
         ${is_start_marker}=    Run Keyword And Return Status    Should Contain    ${line}    ActivityTaskManager: START u0
         ${is_end_marker}=    Run Keyword And Return Status    Should Contain    ${line}    Layer: Destroyed ActivityRecord
         Run Keyword If    ${is_start_marker}    Parse Start Marker    ${line}    ${current_package}    ${current_start_time}
-        Run Keyword If    ${is_end_marker}    Parse End Marker    ${line}    ${current_package}    ${current_start_time}    ${parsed_data}
-
-
+        Run Keyword If    ${is_end_marker}    Parse End Marker    ${line}    ${current_package}    ${current_start_time}  ${current_end_time}  ${parsed_data}
     END
     RETURN    ${parsed_data}
 
@@ -40,16 +39,19 @@ Parse Start Marker
     Set Test Variable    ${current_start_time}    ${start_time}
 
 Parse End Marker
-    [Arguments]    ${line}    ${current_package}    ${current_start_time}    ${parsed_data}
+    [Arguments]    ${line}    ${current_package}    ${current_start_time}  ${current_end_time}    ${parsed_data}
     ${end_time}=    Fetch Time    ${line}
-    ${app_data}=    Create Dictionary    package=${current_package}    start_time=${current_start_time}    end_time=${end_time}
+    ${package_name}=    Fetch Package Name    ${line}
+    Set Test Variable    ${current_package}    ${package_name}
+    Set Test Variable    ${current_end_time}    ${end_time}
+    ${app_data}=    Create Dictionary    package=${current_package}    start_time=${current_start_time}    end_time=${current_end_time}
     Append To List    ${parsed_data}    ${app_data}
-    Set Test Variable    ${current_package}    ${EMPTY}
-    Set Test Variable    ${current_start_time}    ${EMPTY}
+
+
 
 Fetch Package Name
     [Arguments]    ${line}
-    ${cmp_start}=    Set Variable    ${line.find('cmp=')+4}
+    ${cmp_start}=    Set Variable    ${line.find('com')+4}
     ${package_and_activity}=    Get Substring    ${line}    ${cmp_start}    ${None}
     ${slash_index}=    Set Variable    ${package_and_activity.find('/')}
     ${package_name}=    Get Substring    ${package_and_activity}    0    ${slash_index}
