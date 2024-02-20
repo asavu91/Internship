@@ -48,7 +48,6 @@ Parse End Marker
     Append To List    ${parsed_data}    ${app_data}
 
 
-
 Fetch Package Name
     [Arguments]    ${line}
     ${cmp_start}=    Set Variable    ${line.find('com')+4}
