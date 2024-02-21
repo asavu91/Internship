@@ -7,12 +7,15 @@ Library    DateTime
 
 *** Variables ***
 ${LOGCAT_FILE}    logcat.txt
+${OUTPUT_FILE}    output.yml
 
 *** Test Cases ***
 Analyze Lifespan of Android Applications
     ${data}=    Parse Logcat File    ${LOGCAT_FILE}
     ${lifespans}=    Calculate Lifespan    ${data}
-    Generate Test Verdict    ${lifespans}
+    Output App Data To File    ${lifespans}    ${OUTPUT_FILE}
+    Generate Test Verdict      ${lifespans}
+
 
 *** Keywords ***
 Parse Logcat File
@@ -49,9 +52,7 @@ Parse Logcat File
             END
 
     END
-
     RETURN    ${parsed_data}
-
 
 
 Parse Start Marker
@@ -61,6 +62,7 @@ Parse Start Marker
     Set Test Variable    ${current_package}    ${package_name}
     Set Test Variable    ${current_start_time}    ${start_time}
 
+
 Parse End Marker
     [Arguments]    ${line}    ${current_package}    ${current_start_time}    ${current_end_time}    ${parsed_data}
     ${end_time}=    Fetch Time    ${line}
@@ -69,6 +71,7 @@ Parse End Marker
     Set Test Variable    ${current_end_time}    ${end_time}
     ${app_data}=    Create Dictionary    package=${current_package}    start_time=${current_start_time}    end_time=${current_end_time}
     Append To List    ${parsed_data}    ${app_data}
+
 
 Fetch Package Name
     [Arguments]    ${line}
@@ -84,6 +87,7 @@ Fetch Time
     ${time}=    Get Substring    ${line}    6    18
     RETURN    ${time}
 
+
 Calculate Lifespan
     [Arguments]    ${data}
     ${lifespans}=    Create List
@@ -97,21 +101,41 @@ Calculate Lifespan
     END
     RETURN    ${lifespans}
 
+
+Output App Data To File
+    [Arguments]    ${data}    ${filename}
+    ${output}=    Set Variable    applications:\n
+    ${index}=    Set Variable    1
+    FOR    ${app}    IN    @{data}
+        ${package}=    Set Variable    ${app.get('package', 'N/A')}
+        ${start_time}=    Set Variable    ${app.get('start_time')}
+        ${end_time}=    Set Variable    ${app.get('end_time')}
+        ${lifespan}=    Set Variable    ${app.get('lifespan', 'N/A')}s
+
+        ${app_output}=    Set Variable
+        ...    - application_${index}\n
+        ...    - app_path:  ${package}\n
+        ...    - ts_app_started: ${start_time}\n
+        ...    - ts_app_closed:  ${end_time}\n
+        ...    - lifespan:  ${lifespan}\n
+        ${output}=    Set Variable    ${output}${app_output}\n
+        ${index}=    Evaluate    ${index} + 1
+    END
+    Create File    ${filename}    ${output}
+
+
 Convert Time To Seconds
     [Arguments]    ${time_str}
     ${minutes}=    Get Substring    ${time_str}    3    5
     ${seconds}=    Get Substring    ${time_str}    6    8
     ${milliseconds}=    Get Substring    ${time_str}    9    12
 
-    # Handle empty strings for seconds and remove leading zeros
     ${minutes}=    Set Variable If    '${minutes}' == ''    0    ${minutes.lstrip("0")}
     ${seconds}=    Set Variable If    '${seconds}' == ''    0    ${seconds.lstrip("0")}
     ${milliseconds}=    Set Variable If    '${milliseconds}' == ''    0    ${milliseconds.lstrip("0")}
 
-    # Convert to integers and calculate total seconds
     ${total_seconds}=    Evaluate    int(${minutes}) * 60 + int(${seconds}) + int(${milliseconds}) / 1000.0
     RETURN    ${total_seconds}
-
 
 
 Generate Test Verdict
@@ -124,11 +148,12 @@ Generate Test Verdict
         ${percentage_below_threshold}=    Evaluate    100.0 * ${apps_below_threshold} / ${total_apps}
         ${apps_above_threshold}=    Evaluate    [app for app in ${data} if app['lifespan'] > 30]
 
-        Run Keyword If    ${percentage_below_threshold} >= 75
-        ...    Log    PASSED
-        ...    ELSE    Log    FAILED
-
         FOR    ${app}    IN    @{apps_above_threshold}
             Log    Warning: ${app['package']} was opened for more than 30 seconds. Lifespan: ${app['lifespan']} seconds.
         END
+
+        Run Keyword If    ${percentage_below_threshold} < 75
+        ...    Fail    Test FAILED: Percentage of apps below threshold is less than 75%
+        ...    ELSE    Log    Test PASSED
+
     END
