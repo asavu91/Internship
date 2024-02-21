@@ -22,19 +22,37 @@ Parse Logcat File
     ${relevant_lines}=    Get Lines Matching Regexp    ${file_contents}    .*ActivityTaskManager: START u0.*|.*Layer: Destroyed ActivityRecord.*
     ${lines}=    Split To Lines    ${relevant_lines}
 
-    ${current_package}=    Set Variable    ${EMPTY}
-    ${current_start_time}=    Set Variable    ${EMPTY}
-    ${current_end_time}=    Set Variable    ${EMPTY}
+    ${app_states}=    Create Dictionary
 
     FOR    ${line}    IN    @{lines}
         ${start_marker}=    Run Keyword And Return Status    Should Contain    ${line}    ActivityTaskManager: START u0
         ${end_marker}=    Run Keyword And Return Status    Should Contain    ${line}    Layer: Destroyed ActivityRecord
 
-        Run Keyword If    ${start_marker}    Parse Start Marker    ${line}    ${current_package}    ${current_start_time}
-        Run Keyword If    ${end_marker}    Parse End Marker    ${line}    ${current_package}    ${current_start_time}    ${current_end_time}    ${parsed_data}
+        IF    ${start_marker}
+            ${package_name}=    Fetch Package Name    ${line}
+            ${start_time}=    Fetch Time    ${line}
+            ${app_info}=    Create Dictionary    start_time=${start_time}    end_time=${EMPTY}
+            Set To Dictionary    ${app_states}    ${package_name}    ${app_info}
+           ELSE IF    ${end_marker}
+                ${package_name}=    Fetch Package Name    ${line}
+                ${app_exists}=    Run Keyword And Return Status    Dictionary Should Contain Key    ${app_states}    ${package_name}
+                IF    ${app_exists}
+                    ${end_time}=    Fetch Time    ${line}
+                    ${app_info}=    Get From Dictionary    ${app_states}    ${package_name}
+                    Set To Dictionary    ${app_info}    end_time    ${end_time}
+                    ${app_data}=    Create Dictionary    package=${package_name}    start_time=${app_info}[start_time]    end_time=${end_time}
+                    Append To List    ${parsed_data}    ${app_data}
+                    Remove From Dictionary    ${app_states}    ${package_name}
+                ELSE
+                    Log    Warning: End marker found for ${package_name} without a corresponding start marker.
+                END
+            END
+
     END
 
-    [Return]    ${parsed_data}
+    RETURN    ${parsed_data}
+
+
 
 Parse Start Marker
     [Arguments]    ${line}    ${current_package}    ${current_start_time}
@@ -54,11 +72,12 @@ Parse End Marker
 
 Fetch Package Name
     [Arguments]    ${line}
-    ${cmp_start}=    Set Variable    ${line.find('com')+4}
-    ${package_and_activity}=    Get Substring    ${line}    ${cmp_start}    ${None}
+    ${com_start}=    Set Variable    ${line.find('com.')+4}
+    ${package_and_activity}=    Get Substring    ${line}    ${com_start}    ${None}
     ${slash_index}=    Set Variable    ${package_and_activity.find('/')}
     ${package_name}=    Get Substring    ${package_and_activity}    0    ${slash_index}
-    [Return]    ${package_name}
+    RETURN    ${package_name}
+
 
 Fetch Time
     [Arguments]    ${line}
@@ -83,9 +102,17 @@ Convert Time To Seconds
     ${minutes}=    Get Substring    ${time_str}    3    5
     ${seconds}=    Get Substring    ${time_str}    6    8
     ${milliseconds}=    Get Substring    ${time_str}    9    12
-    ${milliseconds}=    Convert Time    ${milliseconds}
+
+    # Handle empty strings for seconds and remove leading zeros
+    ${minutes}=    Set Variable If    '${minutes}' == ''    0    ${minutes.lstrip("0")}
+    ${seconds}=    Set Variable If    '${seconds}' == ''    0    ${seconds.lstrip("0")}
+    ${milliseconds}=    Set Variable If    '${milliseconds}' == ''    0    ${milliseconds.lstrip("0")}
+
+    # Convert to integers and calculate total seconds
     ${total_seconds}=    Evaluate    int(${minutes}) * 60 + int(${seconds}) + int(${milliseconds}) / 1000.0
     RETURN    ${total_seconds}
+
+
 
 Generate Test Verdict
     [Arguments]    ${data}
