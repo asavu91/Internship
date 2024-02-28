@@ -6,7 +6,7 @@ Library    String
 *** Variables ***
 ${INPUT_FILE}     RobotFramework/ccs2/RELIABILITY/TC_SWQUAL_CCS2_RELIABILITY_B2B_PA.robot
 ${REPORT_FILE}    RobotFramework/ccs2/Imposters.robot
-@{KEYWORDS_TO_CHECK}    SAVE CANDUMP LOGS    START LOGCAT MONITOR    START DLT MONITOR    CHECK VIN AND PART ASSOCIATION    CHECK VIN CONFIG ON    SET VNEXT TIME AND DATE ON IVC    SET PROP APLOG    ENABLE IVI DEBUG LOGS   REMOVE IVI APLOG    REMOVE IVI DROPBOX CRASHES
+@{KEYWORDS_TO_CHECK}    START TEST CASE    SAVE CANDUMP LOGS    START LOGCAT MONITOR    START DLT MONITOR    CHECK VIN AND PART ASSOCIATION    CHECK VIN CONFIG ON    SET VNEXT TIME AND DATE ON IVC    SET PROP APLOG    ENABLE IVI DEBUG LOGS   REMOVE IVI APLOG    REMOVE IVI DROPBOX CRASHES
 
 
 *** Test Cases ***
@@ -41,16 +41,37 @@ Extract Resource File Paths
 
     RETURN    ${resource_paths}
 
+
 Check Keywords In Resource Files
     [Arguments]    ${resource_paths}    @{keywords_to_check}
     FOR    ${path}    IN    @{resource_paths}
         ${content}=    Get File    ${path}
-        FOR    ${keyword}    IN    @{keywords_to_check}
-            ${matched}=    Run Keyword And Return Status    Should Match Regexp    ${content}    ${keyword}
-            IF    ${matched}
-                Log    Keyword ${keyword} found in ${path}
-            ELSE
-                Log    Keyword ${keyword} not found in ${path}
+        ${lines}=    Split To Lines    ${content}
+        ${found_keywords}=    Create List
+        ${previous_line}=    Set Variable    ${EMPTY}
+
+        FOR    ${line}    IN    @{lines}
+            ${line_trimmed}=    Strip String    ${line}
+            ${is_arguments}=    Run Keyword And Return Status    Should Contain    ${line_trimmed}    [Arguments]
+            ${is_documentation}=    Run Keyword And Return Status    Should Contain    ${line_trimmed}    [Documentation]
+            ${check_line}=    Set Variable If    ${is_arguments} or ${is_documentation}    ${previous_line}    ${EMPTY}
+
+            IF    '${check_line}' != '${EMPTY}'
+                FOR    ${keyword}    IN    @{keywords_to_check}
+                    ${contains_keyword}=    Run Keyword And Return Status    Should Contain    ${check_line}    ${keyword}
+                    IF    ${contains_keyword}
+                        Append To List    ${found_keywords}    ${keyword}
+                    END
+                END
             END
+            ${previous_line}=    Set Variable    ${line_trimmed}
+        END
+
+        ${found_keywords_count}=    Get Length    ${found_keywords}
+        IF    ${found_keywords_count} > 0
+            Log    Keywords found in ${path} before [Arguments] or [Documentation]: ${found_keywords}
+        ELSE
+            Log    No keywords from the list found in ${path} before [Arguments] or [Documentation]
         END
     END
+
