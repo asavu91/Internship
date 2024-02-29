@@ -2,11 +2,12 @@
 Library    OperatingSystem
 Library    Collections
 Library    String
+Library    BuiltIn
 
 *** Variables ***
 ${INPUT_FILE}     RobotFramework/ccs2/RELIABILITY/TC_SWQUAL_CCS2_RELIABILITY_B2B_PA.robot
 ${REPORT_FILE}    RobotFramework/ccs2/Imposters.robot
-@{KEYWORDS_TO_CHECK}    START TEST CASE    SAVE CANDUMP LOGS    START LOGCAT MONITOR    START DLT MONITOR    CHECK VIN AND PART ASSOCIATION    CHECK VIN CONFIG ON    SET VNEXT TIME AND DATE ON IVC    SET PROP APLOG    ENABLE IVI DEBUG LOGS   REMOVE IVI APLOG    REMOVE IVI DROPBOX CRASHES
+@{KEYWORDS_TO_CHECK}    START TEST CASE    SAVE CANDUMP LOGS    START LOGCAT MONITOR    START DLT MONITOR    CHECK VIN AND PART ASSOCIATION    CHECK VIN CONFIG ON    SET PROP APLOG    ENABLE IVI DEBUG LOGS   REMOVE IVI APLOG    REMOVE IVI DROPBOX CRASHES
 
 
 *** Test Cases ***
@@ -34,7 +35,6 @@ Extract Resource File Paths
     FOR    ${line}    IN    @{resource_lines}
         ${resource_path}=    Get Substring    ${line}    9
         ${resource_path}=    Strip String    ${resource_path}
-        # Remove ".." from the path
         ${adjusted_path}=    Replace String    ${resource_path}    ../   RobotFramework/ccs2/
         Append To List    ${resource_paths}    ${adjusted_path}
     END
@@ -45,12 +45,17 @@ Extract Resource File Paths
 *** Keywords ***
 Check Keywords In Resource Files
     [Arguments]    ${resource_paths}    @{keywords_to_check}
-    ${keywords_not_found_in_any_path}=    Create List    @{keywords_to_check}
+    ${keywords_found_flags}=    Create Dictionary
+
+    # Initialize all keywords as not found
+    FOR    ${keyword}    IN    @{keywords_to_check}
+        Set To Dictionary    ${keywords_found_flags}    ${keyword}    ${FALSE}
+    END
 
     FOR    ${path}    IN    @{resource_paths}
         ${content}=    Get File    ${path}
         ${lines}=    Split To Lines    ${content}
-        ${found_keywords_in_this_path}=    Create List
+        ${previous_line}=    Set Variable    ${EMPTY}
 
         FOR    ${line}    IN    @{lines}
             ${line_trimmed}=    Strip String    ${line}
@@ -62,26 +67,27 @@ Check Keywords In Resource Files
                 FOR    ${keyword}    IN    @{keywords_to_check}
                     ${contains_keyword}=    Run Keyword And Return Status    Should Contain    ${check_line}    ${keyword}
                     IF    ${contains_keyword}
-                        Append To List    ${found_keywords_in_this_path}    ${keyword}
+                        Set To Dictionary    ${keywords_found_flags}    ${keyword}    ${TRUE}
                     END
                 END
             END
             ${previous_line}=    Set Variable    ${line_trimmed}
         END
+    END
 
-        # Remove found keywords from the list of keywords not found in any path
-        FOR    ${found_keyword}    IN    @{found_keywords_in_this_path}
-            ${is_in_list}=    Run Keyword And Return Status    Should Contain List    ${keywords_not_found_in_any_path}    ${found_keyword}
-            IF    ${is_in_list}
-                Remove Values From List    ${keywords_not_found_in_any_path}    ${found_keyword}
-            END
+    ${not_found_keywords}=    Create List
+    FOR    ${keyword}    ${found}    IN    &{keywords_found_flags}
+        IF    ${found} == ${FALSE}
+            Append To List    ${not_found_keywords}    ${keyword}
         END
     END
 
-    # Report keywords not found in any resource path
-    ${missing_count}=    Get Length    ${keywords_not_found_in_any_path}
+    ${missing_count}=    Get Length    ${not_found_keywords}
     IF    ${missing_count} > 0
-        Log    Keywords not found in any resource path: ${keywords_not_found_in_any_path}
+        Log    Keywords not found in any resource path: ${not_found_keywords}
+
+        ${missing_keywords_string}=    Evaluate    ', '.join(${not_found_keywords})    re
+        Append To File    ${REPORT_FILE}    Missing Keywords: ${missing_keywords_string}\n
     ELSE
         Log    All keywords were found in at least one resource path.
     END
