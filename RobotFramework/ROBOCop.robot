@@ -42,13 +42,15 @@ Extract Resource File Paths
     RETURN    ${resource_paths}
 
 
+*** Keywords ***
 Check Keywords In Resource Files
     [Arguments]    ${resource_paths}    @{keywords_to_check}
+    ${keywords_not_found_in_any_path}=    Create List    @{keywords_to_check}
+
     FOR    ${path}    IN    @{resource_paths}
         ${content}=    Get File    ${path}
         ${lines}=    Split To Lines    ${content}
-        ${found_keywords}=    Create List
-        ${previous_line}=    Set Variable    ${EMPTY}
+        ${found_keywords_in_this_path}=    Create List
 
         FOR    ${line}    IN    @{lines}
             ${line_trimmed}=    Strip String    ${line}
@@ -60,18 +62,26 @@ Check Keywords In Resource Files
                 FOR    ${keyword}    IN    @{keywords_to_check}
                     ${contains_keyword}=    Run Keyword And Return Status    Should Contain    ${check_line}    ${keyword}
                     IF    ${contains_keyword}
-                        Append To List    ${found_keywords}    ${keyword}
+                        Append To List    ${found_keywords_in_this_path}    ${keyword}
                     END
                 END
             END
             ${previous_line}=    Set Variable    ${line_trimmed}
         END
 
-        ${found_keywords_count}=    Get Length    ${found_keywords}
-        IF    ${found_keywords_count} > 0
-            Log    Keywords found in ${path} before [Arguments] or [Documentation]: ${found_keywords}
-        ELSE
-            Log    No keywords from the list found in ${path} before [Arguments] or [Documentation]
+        # Remove found keywords from the list of keywords not found in any path
+        FOR    ${found_keyword}    IN    @{found_keywords_in_this_path}
+            ${is_in_list}=    Run Keyword And Return Status    Should Contain List    ${keywords_not_found_in_any_path}    ${found_keyword}
+            IF    ${is_in_list}
+                Remove Values From List    ${keywords_not_found_in_any_path}    ${found_keyword}
+            END
         END
     END
 
+    # Report keywords not found in any resource path
+    ${missing_count}=    Get Length    ${keywords_not_found_in_any_path}
+    IF    ${missing_count} > 0
+        Log    Keywords not found in any resource path: ${keywords_not_found_in_any_path}
+    ELSE
+        Log    All keywords were found in at least one resource path.
+    END
