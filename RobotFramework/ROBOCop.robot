@@ -75,19 +75,20 @@ Check Keywords In Resource Files
         END
     END
 
+    ${output}=    Set Variable    ${EMPTY}
     ${not_found_keywords}=    Create List
     FOR    ${keyword}    ${found}    IN    &{keywords_found_flags}
         IF    ${found} == ${FALSE}
             Append To List    ${not_found_keywords}    ${keyword}
+            ${formatted_line}=    Catenate    SEPARATOR=\n    ${keyword}\n    [Arguments]    \${foo}\n    Keyword not defined, waiting for implementation.
+            Log    ${formatted_line}
+            ${output}=    Catenate    SEPARATOR=\n    ${output}    ${formatted_line}\n
         END
     END
 
     ${missing_count}=    Get Length    ${not_found_keywords}
     IF    ${missing_count} > 0
-        Log    Keywords not found in any resource path: ${not_found_keywords}
-
-        ${missing_keywords_string}=    Evaluate    ', '.join(${not_found_keywords})    re
-        Append To File    ${REPORT_FILE}    Missing Keywords: ${missing_keywords_string}\n
+        Append To File    ${REPORT_FILE}    ${output}
     ELSE
         Log    All keywords were found in at least one resource path.
     END
